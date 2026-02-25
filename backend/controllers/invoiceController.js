@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Invoice from "../models/invoiceModel";
+import Invoice from "../models/invoiceModel.js";
 import {getAuth} from "@clerk/express"
 import path from "path"
 
@@ -35,28 +35,6 @@ function parseItemField(val){
 function isObjectIDString(val){
     return typeof val ==="string"&& /^[0-9a-fA-F]$/.test(val)
 }
-function uploadedFilesToUrls(req) {
-  const urls = {};
-  if (!req.files) return urls;
-  const mapping = {
-    logoName: "logoDataUrl",
-    stampName: "stampDataUrl",
-    signatureNameMeta: "signatureDataUrl",
-    logo: "logoDataUrl",
-    stamp: "stampDataUrl",
-    signature: "signatureDataUrl",
-  };
-  Object.keys(mapping).forEach((field) => {
-    const arr = req.files[field];
-    if (Array.isArray(arr) && arr[0]) {
-      const filename =
-        arr[0].filename || (arr[0].path && path.basename(arr[0].path));
-      if (filename) urls[mapping[field]] = `${API_BASE}/uploads/${filename}`;
-    }
-  });
-  return urls;
-}
-// helper function for uploading files to public urls
 function uploadedFilesToUrls(req) {
   const urls = {};
   if (!req.files) return urls;
@@ -415,14 +393,12 @@ export async function updateInvoice(req,res){
   }
 }
 
-// Toq delete an 
-
-try {
-      const { userId } = getAuth(req) || {};
+// To delete an Invoice
+export async function deleteInvoice(req, res) {
+  try {
+    const { userId } = getAuth(req) || {};
     if (!userId) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Authentication required" });
+      return res.status(401).json({ success: false, message: "Authentication required" });
     }
         const {id} =req.params
         const query =isObjectIDString(id)? {_id:id,owner:userId}:{invoiceNumber:id,owner:userId}
@@ -439,13 +415,12 @@ try {
           message:"Invoice Deleted successfully"
         })
 
-        }
-  
-catch (err) {
+  } catch (err) {
         console.error("DELETEINVOICE ERROR:",err)
         return res.status(500).json({
             success:false,
             message:"Server Error"
         })
         
-    }
+  }
+}
